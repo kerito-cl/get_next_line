@@ -40,12 +40,14 @@ char	*ft_strdup(const char *s)
 char	*get_next_line(int fd)
 {
 	static char	**split = NULL;
-	static char	buffer[10000] = "";
+	static char	buffer[BUFFER_SIZE] = "";
 	static int	i = 0;
 
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (0);
 	if (i == 0)
 	{
-		read(fd, buffer, 10000);
+		read(fd, buffer, BUFFER_SIZE);
 		split = ft_split(buffer, '\n');
 	}
 	if (split == NULL)
@@ -60,15 +62,15 @@ char	*get_next_line(int fd)
 	}
 }
 
-/*int	main(void)
+int	main(void)
 {
 	int		fd;
 	char	*next;
 
 	fd = open("test.txt", O_RDONLY);
 	// printf("fd = %d\n", fd);
-	if (fd == -1);
-		printf("Error Number");
+	// if (fd == -1)
+	//	printf("Error Number");
 	next = get_next_line(fd);
 	while (next != NULL)
 	{
@@ -76,4 +78,4 @@ char	*get_next_line(int fd)
 		next = get_next_line(fd);
 	}
 	return (0);
-}*/
+}
