@@ -16,6 +16,46 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+size_t  ft_strlcpy(char *dst, const char *src, size_t size)
+{
+        size_t  i;
+        size_t  len;
+
+        i = 0;
+        len = 0;
+        while (src[len])
+                len++;
+        if (size == 0)
+                return (len);
+        while (src[i] && i < (size - 1))
+        {
+                dst[i] = src[i];
+                i++;
+        }
+        dst[i] = '\0';
+        return (len);
+}
+
+void	*ft_memcpy(void *dest, const void *src, size_t n)
+{
+	size_t			i;
+	const char	*s;
+	char		*d;
+
+	if (dest == NULL && src == NULL)
+		return (dest);
+	i = 0;
+	d = dest;
+	s = src;
+	while (i < n)
+	{
+		d[i] = s[i];
+		i++;
+	}
+	d[i] = '\0';
+	return (dest);
+}
+
 char	*ft_strdup(const char *s)
 {
 	int		len;
@@ -39,43 +79,52 @@ char	*ft_strdup(const char *s)
 
 char	*get_next_line(int fd)
 {
-	static char	**split = NULL;
 	static char	buffer[BUFFER_SIZE] = "";
 	static int	i = 0;
+	char	*line;
+	int	k;
 
+	line = NULL;
+	k = 0;
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (0);
+		return (NULL);
 	if (i == 0)
-	{
 		read(fd, buffer, BUFFER_SIZE);
-		split = ft_split(buffer, '\n');
-	}
-	if (split == NULL)
+	if (buffer[i] == '\0')
 		return (NULL);
-	i++;
-	if (split[i - 1] != NULL)
-		return (split[i - 1]);
-	else
+	while (buffer[i] != '\n' && buffer[i] != '\0')
 	{
-		freesplit(split);
-		return (NULL);
+		i++;
+		k++;
 	}
+	if (buffer[i] == '\n')
+	{
+		i++;
+		k++;
+	}
+	line = (char *)malloc(sizeof(char) * (k + 1));
+	if (line == NULL)
+		return NULL;
+	ft_strlcpy(line, (buffer + i - k), (size_t)k + 1);
+	return (line);
 }
 
-int	main(void)
+/*int	main(void)
 {
 	int		fd;
 	char	*next;
-
-	fd = open("test.txt", O_RDONLY);
-	// printf("fd = %d\n", fd);
+	
+	fd = open("41_with_nl", O_RDONLY);
 	// if (fd == -1)
 	//	printf("Error Number");
 	next = get_next_line(fd);
 	while (next != NULL)
 	{
-		printf("%s\n", next);
+		printf("%s", next);
+		free(next);
 		next = get_next_line(fd);
 	}
+	next = get_next_line(fd);
+	free(next);
 	return (0);
-}
+}*/

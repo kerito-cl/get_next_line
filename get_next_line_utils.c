@@ -11,8 +11,9 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <stdio.h>
 
-size_t	ft_strlcpy(char *dst, const char *src, size_t size)
+/*size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 {
 	size_t	i;
 	size_t	len;
@@ -48,19 +49,12 @@ void	freesplit(char **strs)
 static int	countarr(int n, const char *s, char c)
 {
 	int	i;
-	int	flag;
 
 	i = 0;
-	flag = 0;
 	while (s[i])
 	{
-		if (s[i] != c && flag == 0)
-		{
-			flag = 1;
+		if (s[i] == c || s[i + 1] == '\0')
 			n++;
-		}
-		else if (s[i] == c)
-			flag = 0;
 		i++;
 	}
 	return (n);
@@ -72,14 +66,14 @@ static char	*allocate(char const *s, char c, int *y)
 	char	*temp;
 
 	k = 0;
-	while (s[*y] == c)
-		*y = *y + 1;
 	while (s[*y] != c && s[*y] != '\0')
 	{
 		k++;
 		*y = *y + 1;
 	}
-	temp = (char *)malloc((k + 1) * (sizeof(char)));
+	*y = *y + 1;
+	k++;
+	temp = (char *)malloc((k + 2) * (sizeof(char)));
 	if (temp == NULL)
 		return (NULL);
 	ft_strlcpy(temp, (s + *y - k), k + 1);
@@ -112,4 +106,4 @@ char	**ft_split(char const *s, char c)
 		i++;
 	}
 	return (strsplit);
-}
+}*/
