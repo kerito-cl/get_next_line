@@ -6,7 +6,7 @@
 /*   By: mquero <mquero@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 13:59:10 by mquero            #+#    #+#             */
-/*   Updated: 2024/11/09 14:01:05 by mquero           ###   ########.fr       */
+/*   Updated: 2024/11/11 15:11:16 by mquero           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,26 +36,6 @@ size_t  ft_strlcpy(char *dst, const char *src, size_t size)
         return (len);
 }
 
-void	*ft_memcpy(void *dest, const void *src, size_t n)
-{
-	size_t			i;
-	const char	*s;
-	char		*d;
-
-	if (dest == NULL && src == NULL)
-		return (dest);
-	i = 0;
-	d = dest;
-	s = src;
-	while (i < n)
-	{
-		d[i] = s[i];
-		i++;
-	}
-	d[i] = '\0';
-	return (dest);
-}
-
 char	*ft_strdup(const char *s)
 {
 	int		len;
@@ -80,51 +60,49 @@ char	*ft_strdup(const char *s)
 char	*get_next_line(int fd)
 {
 	static char	buffer[BUFFER_SIZE] = "";
+	static char	temp[1024];
 	static int	i = 0;
 	char	*line;
-	int	k;
+	static int	k;
 
 	line = NULL;
-	k = 0;
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (i == 0)
-		read(fd, buffer, BUFFER_SIZE);
-	if (buffer[i] == '\0')
-		return (NULL);
-	while (buffer[i] != '\n' && buffer[i] != '\0')
+	k = read(fd, buffer, BUFFER_SIZE);
+	while (k != 0 && buffer[0] != '\n')
 	{
+		temp[i] = buffer[0];
+		k = read(fd, buffer, BUFFER_SIZE);
 		i++;
-		k++;
+		if (buffer[0] == '\n' || buffer[0] == '\0')
+		{
+			temp[i] = buffer[0];
+			printf("%s", temp);
+			line = (char *)malloc(sizeof(char) * (i + 1));
+			if (line == NULL)
+				return NULL;
+			ft_strlcpy(line, (temp), (size_t)i + 1);
+			return line;
+		}
 	}
-	if (buffer[i] == '\n')
-	{
-		i++;
-		k++;
-	}
-	line = (char *)malloc(sizeof(char) * (k + 1));
-	if (line == NULL)
-		return NULL;
-	ft_strlcpy(line, (buffer + i - k), (size_t)k + 1);
-	return (line);
+	return NULL;
 }
 
-/*int	main(void)
+int	main(void)
 {
 	int		fd;
 	char	*next;
 	
-	fd = open("41_with_nl", O_RDONLY);
+	fd = open("./textfiles/41_with_nl", O_RDONLY);
 	// if (fd == -1)
 	//	printf("Error Number");
 	next = get_next_line(fd);
-	while (next != NULL)
+	printf("%s", next);
+	/*while (next != NULL)
 	{
 		printf("%s", next);
 		free(next);
 		next = get_next_line(fd);
-	}
-	next = get_next_line(fd);
-	free(next);
+	}*/
 	return (0);
-}*/
+}
