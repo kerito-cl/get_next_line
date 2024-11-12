@@ -57,33 +57,45 @@ char	*ft_strdup(const char *s)
 	return (des);
 }
 
+
+
 char	*get_next_line(int fd)
 {
 	static char	buffer[BUFFER_SIZE] = "";
-	static char	temp[1024];
-	static int	i = 0;
+	char	temp[1024];
+	int	i;
 	char	*line;
-	static int	k;
+	static int	k = 1;
+	static int	j = 0;
 
 	line = NULL;
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	i = 0;
+	if (fd < 0 || BUFFER_SIZE <= 0 || k == 0)
 		return (NULL);
-	k = read(fd, buffer, BUFFER_SIZE);
-	while (k != 0 && buffer[0] != '\n')
+	while (k != 0)
 	{
-		temp[i] = buffer[0];
-		k = read(fd, buffer, BUFFER_SIZE);
-		i++;
-		if (buffer[0] == '\n' || buffer[0] == '\0')
+		if (j == 0)
+			k = read(fd, buffer, BUFFER_SIZE);
+		while (j < k && buffer[j] != '\n')
 		{
-			temp[i] = buffer[0];
-			printf("%s", temp);
-			line = (char *)malloc(sizeof(char) * (i + 1));
-			if (line == NULL)
-				return NULL;
-			ft_strlcpy(line, (temp), (size_t)i + 1);
-			return line;
+			temp[i] = buffer[j];
+			i++;
+			j++;
 		}
+		if (buffer[j] == '\n')
+			break;
+		j = 0;
+	}
+	if (buffer[j] == '\n' || buffer[j] == '\0')
+	{
+		temp[i] = buffer[j];
+		i++;
+		j++;
+		line = (char *)malloc(sizeof(char) * (i + 1));
+		if (line == NULL)
+			return NULL;
+		ft_strlcpy(line, (temp), (size_t)i + 1);
+		return line;
 	}
 	return NULL;
 }
@@ -96,13 +108,12 @@ int	main(void)
 	fd = open("./textfiles/41_with_nl", O_RDONLY);
 	// if (fd == -1)
 	//	printf("Error Number");
-	next = get_next_line(fd);
-	printf("%s", next);
-	/*while (next != NULL)
+	next = get_next_line(fd);	
+	while (next != NULL)
 	{
 		printf("%s", next);
 		free(next);
 		next = get_next_line(fd);
-	}*/
+	}
 	return (0);
 }
