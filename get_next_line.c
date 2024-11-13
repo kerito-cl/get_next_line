@@ -6,7 +6,7 @@
 /*   By: mquero <mquero@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 13:59:10 by mquero            #+#    #+#             */
-/*   Updated: 2024/11/13 18:46:45 by mquero           ###   ########.fr       */
+/*   Updated: 2024/11/13 19:03:34 by mquero           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,13 +198,14 @@ char	*read_line(int fd, char *temp)
 			}
 			j++;
 		}
-		if (j == k && flag == 0)
+		if (j == k && flag == 0 && k != 0)
 		{
 			temp = ft_strjoin(temp, buffer, k);
 			i = 0;
 			j = 0;
 		}
 	}
+	free(temp);
 	return NULL;
 }
 
@@ -214,8 +215,9 @@ char	*get_next_line(int fd)
 	char	*line;
 	
 	temp = (char *)ft_calloc( BUFFER_SIZE + 1, sizeof(char));
+	if (temp == NULL)
+		return (NULL);
 	temp = read_line(fd, temp);
-
 	if (temp != NULL)
 		return temp;
 	free(temp);
@@ -227,7 +229,7 @@ int	main(void)
 	int		fd;
 	char	*next;
 	
-	fd = open("./textfiles/41_with_nl", O_RDONLY);
+	fd = open("./textfiles/test.txt", O_RDONLY);
 	// if (fd == -1)
 	//	printf("Error Number");
 	next = get_next_line(fd);
@@ -237,6 +239,7 @@ int	main(void)
 		free(next);
 		next = get_next_line(fd);
 	}
+	printf("%s", next);
 	free(next);
 
 	return (0);
