@@ -6,7 +6,7 @@
 /*   By: mquero <mquero@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 13:59:10 by mquero            #+#    #+#             */
-/*   Updated: 2024/11/12 19:29:08 by mquero           ###   ########.fr       */
+/*   Updated: 2024/11/13 18:46:45 by mquero           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ size_t  ft_strlcpy(char *dst, const char *src, size_t size)
         return (len);
 }
 
-char	*ft_strdup(const char *s)
+char	*ft_strdup(const char *s, size_t n)
 {
 	int		len;
 	char	*des;
@@ -68,13 +68,27 @@ char	*ft_strdup(const char *s)
 	if (des == NULL)
 		return (NULL);
 	len = 0;
-	while (s[len])
+	while (len < n && s[len])
 	{
 		des[len] = s[len];
 		len++;
 	}
 	des[len] = '\0';
 	return (des);
+}
+
+void	ft_bzero(void *s, size_t n)
+{
+	size_t	i;
+	char	*str;
+
+	i = 0;
+	str = s;
+	while (i < n)
+	{
+		str[i] = '\0';
+		i++;
+	}
 }
 
 
@@ -91,6 +105,22 @@ char	*resize_buffer(char *temp, int *capacity)
 	return (newtemp);
 
 }
+void	*ft_calloc(size_t nmemb, size_t size)
+{
+	void		*ptr;
+	size_t		n;
+
+	if (nmemb && size > (size_t)-1 / nmemb
+		&& nmemb && size > (size_t)-1 / size)
+		return (0);
+	n = nmemb * size;
+	ptr = malloc(n);
+	if (ptr == NULL)
+		return (NULL);
+	ft_bzero(ptr, n);
+	return (ptr);
+}
+
 
 size_t	ft_strlen(const char *str)
 {
@@ -103,7 +133,7 @@ size_t	ft_strlen(const char *str)
 }
 
 
-char	*ft_strjoin(char *s1, char const *s2)
+char	*ft_strjoin(char *s1, char const *s2, size_t n)
 {
 	int		i;
 	int		j;
@@ -119,7 +149,7 @@ char	*ft_strjoin(char *s1, char const *s2)
 		dest[i] = s1[i];
 		i++;
 	}
-	while (s2[j] != '\0')
+	while (s2[j] != '\0' && j < n)
 	{
 		dest[i + j] = s2[j];
 		j++;
@@ -135,43 +165,60 @@ char	*read_line(int fd, char *temp)
 	static char	buffer[BUFFER_SIZE] = "";
 	static int	k = 1;
 	static int	j = 0;
-	int	i;
+	static int	i = 0;
+	static int	flag = 0;
 
-	i = 0;
-	if (k == 0 || k == -1)
-		return NULL;
 	while (k > 0)
 	{
-		k = read(fd, buffer, BUFFER_SIZE);
-		if (k < BUFFER_SIZE)
-			break;
-		temp = ft_strjoin(temp, buffer);
+		if (flag == 1)
+		{
+			temp = ft_strjoin(temp, buffer + j, j + 1);
+			i = 0;
+			j = 0;
+			flag = 0;
+			return temp;
+		}
+		if (i == 0)
+		{
+			k = read(fd, buffer, BUFFER_SIZE);
+			if (k < BUFFER_SIZE)
+				ft_bzero(buffer + k, k);
+		}
+		while (j < k)
+		{
+			if (buffer[j] == '\n' || k  == '\0')
+			{
+				temp = ft_strjoin(temp, buffer, j + 1);
+				j++;
+				i = 1;
+				flag = 1;
+
+				//printf("%s", temp);
+				return (temp);
+			}
+			j++;
+		}
+		if (j == k && flag == 0)
+		{
+			temp = ft_strjoin(temp, buffer, k);
+			i = 0;
+			j = 0;
+		}
 	}
-	return temp;
+	return NULL;
 }
+
 char	*get_next_line(int fd)
 {
 	char	*temp;
-	static int	i = 0;
 	char	*line;
-	int	k;
-
-	k = i;
-	line = NULL;
-	temp = (char *)malloc(sizeof(char) * BUFFER_SIZE + 1);
+	
+	temp = (char *)ft_calloc( BUFFER_SIZE + 1, sizeof(char));
 	temp = read_line(fd, temp);
-	while (temp[i])
-	{
-		if (temp[i] == '\n' || temp[i] == '\0')
-		{
-			line = ft_strdup(temp - k);
-			free(temp);
-			printf("%s\n", line);
-			i++;
-			return (line);
-		}
-		i++;
-	}
+
+	if (temp != NULL)
+		return temp;
+	free(temp);
 	return NULL;
 }
 
@@ -184,12 +231,13 @@ int	main(void)
 	// if (fd == -1)
 	//	printf("Error Number");
 	next = get_next_line(fd);
-	//next = get_next_line(fd);
-	/*while (next != NULL)
+	while (next != NULL)
 	{
 		printf("%s", next);
 		free(next);
 		next = get_next_line(fd);
-	}*/
+	}
+	free(next);
+
 	return (0);
 }
