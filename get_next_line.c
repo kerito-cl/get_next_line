@@ -6,245 +6,83 @@
 /*   By: mquero <mquero@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 13:59:10 by mquero            #+#    #+#             */
-/*   Updated: 2024/11/13 19:03:34 by mquero           ###   ########.fr       */
+/*   Updated: 2024/11/14 16:45:05 by mquero           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-void	*ft_memcpy(void *dest, const void *src, size_t n)
+char	*check_when_nl(char *temp, char *buffer, t_myitems *mystruct, int hold)
 {
-	int			i;
-	const char	*s;
-	char		*d;
+	if (mystruct->i == 0)
+		temp = ft_strjoin(temp, buffer, mystruct->j + 1);
+	else
+		temp = ft_strjoin(temp, buffer + hold, mystruct->j - hold + 1);
+	mystruct->j = mystruct->j + 1;
+	mystruct->i = 1;
+	return (temp);
+}
 
-	if (dest == NULL && src == NULL)
-		return (dest);
-	i = 0;
-	d = dest;
-	s = src;
-	while (i < (int)n)
+char	*check_when_no_nl(char *temp, char *buffer, t_myitems *mystruct,
+		int hold)
+{
+	if (mystruct->i == 1)
 	{
-		d[i] = s[i];
-		i++;
+		temp = ft_strjoin(temp, buffer + hold, mystruct->j - hold);
+		mystruct->i = 0;
 	}
-	return (dest);
-}
-
-
-size_t  ft_strlcpy(char *dst, const char *src, size_t size)
-{
-        size_t  i;
-        size_t  len;
-
-        i = 0;
-        len = 0;
-        while (src[len])
-                len++;
-        if (size == 0)
-                return (len);
-        while (src[i] && i < (size - 1))
-        {
-                dst[i] = src[i];
-                i++;
-        }
-        dst[i] = '\0';
-        return (len);
-}
-
-/*char	*ft_strdup(const char *s, size_t n)
-{
-	int		len;
-	char	*des;
-
-	len = 0;
-	while (s[len])
-		len++;
-	des = (char *)malloc((len + 1) * sizeof(char));
-	if (des == NULL)
-		return (NULL);
-	len = 0;
-	while (len < n && s[len])
+	else
 	{
-		des[len] = s[len];
-		len++;
+		temp = ft_strjoin(temp, buffer, mystruct->j);
+		mystruct->i = 0;
 	}
-	des[len] = '\0';
-	return (des);
-}*/
-
-void	ft_bzero(void *s, size_t n)
-{
-	size_t	i;
-	char	*str;
-
-	i = 0;
-	str = s;
-	while (i < n)
-	{
-		str[i] = '\0';
-		i++;
-	}
+	return (temp);
 }
 
-
-char	*resize_buffer(char *temp, int *capacity)
+char	*read_line(int fd, char *temp, char *buffer, int hold)
 {
-	char	*newtemp;
-	int	oldcapacity;
+	static t_myitems	mystruct = {0, 1};
+	static int			k = 1;
 
-	oldcapacity = *capacity;
-	*capacity = *capacity * 2;
-	newtemp = (char *)malloc(sizeof(char) * (*capacity));
-	ft_strlcpy(newtemp, temp, oldcapacity + 1);
-	free(temp);
-	return (newtemp);
-
-}
-void	*ft_calloc(size_t nmemb, size_t size)
-{
-	void		*ptr;
-	size_t		n;
-
-	if (nmemb && size > (size_t)-1 / nmemb
-		&& nmemb && size > (size_t)-1 / size)
-		return (0);
-	n = nmemb * size;
-	ptr = malloc(n);
-	if (ptr == NULL)
-		return (NULL);
-	ft_bzero(ptr, n);
-	return (ptr);
-}
-
-
-size_t	ft_strlen(const char *str)
-{
-	size_t	i;
-
-	i = 0;
-	while (str[i])
-		i++;
-	return (i);
-}
-
-char	*ft_strjoin(char *s1, char const *s2, int n)
-{
-	int		i;
-	int		j;
-	char	*dest;
-
-	i = 0;
-	j = 0;
-	dest = (char *)malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
-	if (dest == NULL)
-		return (NULL);
-	while (s1[i] != '\0')
-	{
-		dest[i] = s1[i];
-		i++;
-	}
-	while (s2[j] != '\0' && j < n)
-	{
-		dest[i + j] = s2[j];
-		j++;
-	}
-	dest[i + j] = '\0';
-	free(s1);
-	return (dest);
-}
-
-
-char	*read_line(int fd, char *temp)
-{
-	static char	buffer[BUFFER_SIZE] = "";
-	static int	k = 1;
-	static int	j = 1;
-	static int	i = 0;
-	int	hold;
-
-	hold = j;
-
+	hold = mystruct.j;
 	while (k > 0)
 	{
-		if (j == k && i == 0)
+		if (mystruct.j == k && mystruct.i == 0)
 		{
-			j = 0;
+			mystruct.j = 0;
 			k = read(fd, buffer, BUFFER_SIZE);
-			/*if (k < BUFFER_SIZE)
-				ft_bzero(buffer + k, k);*/
-			if (k == -1)
-				return NULL;
-		}
-		while (j < k)
-		{
-			if (buffer[j] == '\n' || k < BUFFER_SIZE)
-			{
-				if (i == 0)
-					temp = ft_strjoin(temp, buffer, j + 1);
-				else
-					temp = ft_strjoin(temp, buffer + hold, j - hold + 1);
-				j++;
-				i = 1;
-				printf("%d", k);
+			if (hold > 0 && k == 0 && mystruct.i != 1 && temp[0] != '\0')
 				return (temp);
-			}
-			j++;
 		}
-		if (j == k && k != 0)
+		while (mystruct.j < k)
 		{
-			if (i == 1)
-			{
-				temp = ft_strjoin(temp, buffer + hold , j - hold) ;
-				i = 0;
-			}
-			else
-			{
-				temp = ft_strjoin(temp, buffer,j);
-				i = 0;
-			}
+			if (buffer[mystruct.j] == '\n')
+				return (check_when_nl(temp, buffer, &mystruct, hold));
+			mystruct.j++;
 		}
+		if (mystruct.j == k && k > 0)
+			temp = check_when_no_nl(temp, buffer, &mystruct, hold);
 	}
-	printf("%d", k);
 	free(temp);
-	return NULL;
+	return (NULL);
 }
 
 char	*get_next_line(int fd)
 {
-	char	*temp;
-	
+	char		*temp;
+	char		*line;
+	int			hold;
+	static char	buffer[BUFFER_SIZE] = "";
+
+	hold = 0;
+	line = NULL;
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return NULL;
-	temp = (char *)ft_calloc( BUFFER_SIZE + 1, sizeof(char));
+		return (NULL);
+	temp = (char *)ft_calloc(BUFFER_SIZE + 1, sizeof(char));
 	if (temp == NULL)
 		return (NULL);
-	temp = read_line(fd, temp);
-	if (temp != NULL)
-		return temp;
-	//else if (temp == NULL)
-		//free(temp);
-	return NULL;
+	line = read_line(fd, temp, buffer, hold);
+	if (line != NULL)
+		return (line);
+	return (NULL);
 }
-/*int	main(void)
-{
-	int		fd;
-	char	*next;
-	
-	fd = open("./textfiles/test.txt", O_RDONLY);
-	// if (fd == -1)
-	//	printf("Error Number");
-	next = get_next_line(fd);
-	while (next != NULL)
-	{
-		printf("%s", next);
-		free(next);
-		next = get_next_line(fd);
-	}
-	printf("%s", next);
-	return (0);
-}*/
