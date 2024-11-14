@@ -56,7 +56,7 @@ size_t  ft_strlcpy(char *dst, const char *src, size_t size)
         return (len);
 }
 
-char	*ft_strdup(const char *s, size_t n)
+/*char	*ft_strdup(const char *s, size_t n)
 {
 	int		len;
 	char	*des;
@@ -75,7 +75,7 @@ char	*ft_strdup(const char *s, size_t n)
 	}
 	des[len] = '\0';
 	return (des);
-}
+}*/
 
 void	ft_bzero(void *s, size_t n)
 {
@@ -132,8 +132,7 @@ size_t	ft_strlen(const char *str)
 	return (i);
 }
 
-
-char	*ft_strjoin(char *s1, char const *s2, size_t n)
+char	*ft_strjoin(char *s1, char const *s2, int n)
 {
 	int		i;
 	int		j;
@@ -164,47 +163,53 @@ char	*read_line(int fd, char *temp)
 {
 	static char	buffer[BUFFER_SIZE] = "";
 	static int	k = 1;
-	static int	j = 0;
+	static int	j = 1;
 	static int	i = 0;
-	static int	flag = 0;
+	int	hold;
+
+	hold = j;
 
 	while (k > 0)
 	{
-		if (flag == 1)
+		if (j == k && i == 0)
 		{
-			temp = ft_strjoin(temp, buffer + j, j + 1);
-			i = 0;
 			j = 0;
-			flag = 0;
-			return temp;
-		}
-		if (i == 0)
-		{
 			k = read(fd, buffer, BUFFER_SIZE);
-			if (k < BUFFER_SIZE)
-				ft_bzero(buffer + k, k);
+			/*if (k < BUFFER_SIZE)
+				ft_bzero(buffer + k, k);*/
+			if (k == -1)
+				return NULL;
 		}
 		while (j < k)
 		{
-			if (buffer[j] == '\n' || k  == '\0')
+			if (buffer[j] == '\n' || k < BUFFER_SIZE)
 			{
-				temp = ft_strjoin(temp, buffer, j + 1);
+				if (i == 0)
+					temp = ft_strjoin(temp, buffer, j + 1);
+				else
+					temp = ft_strjoin(temp, buffer + hold, j - hold + 1);
 				j++;
 				i = 1;
-				flag = 1;
-
-				//printf("%s", temp);
+				printf("%d", k);
 				return (temp);
 			}
 			j++;
 		}
-		if (j == k && flag == 0 && k != 0)
+		if (j == k && k != 0)
 		{
-			temp = ft_strjoin(temp, buffer, k);
-			i = 0;
-			j = 0;
+			if (i == 1)
+			{
+				temp = ft_strjoin(temp, buffer + hold , j - hold) ;
+				i = 0;
+			}
+			else
+			{
+				temp = ft_strjoin(temp, buffer,j);
+				i = 0;
+			}
 		}
 	}
+	printf("%d", k);
 	free(temp);
 	return NULL;
 }
@@ -212,19 +217,20 @@ char	*read_line(int fd, char *temp)
 char	*get_next_line(int fd)
 {
 	char	*temp;
-	char	*line;
 	
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return NULL;
 	temp = (char *)ft_calloc( BUFFER_SIZE + 1, sizeof(char));
 	if (temp == NULL)
 		return (NULL);
 	temp = read_line(fd, temp);
 	if (temp != NULL)
 		return temp;
-	free(temp);
+	//else if (temp == NULL)
+		//free(temp);
 	return NULL;
 }
-
-int	main(void)
+/*int	main(void)
 {
 	int		fd;
 	char	*next;
@@ -240,7 +246,5 @@ int	main(void)
 		next = get_next_line(fd);
 	}
 	printf("%s", next);
-	free(next);
-
 	return (0);
-}
+}*/
